@@ -36,7 +36,7 @@ public class ClassLoaderTest {
             }
         };
 
-        Object obj = myLoader.loadClass("java.lang.S").newInstance();
+        Object obj = myLoader.loadClass("loading.ClassLoaderTest").newInstance();
 
         System.out.println(obj.getClass());
         //两个ClassLoaderTest类由不同的类加载器加载 虽然是同一个Class文件，但是不同的两个类
