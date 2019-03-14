@@ -5,7 +5,7 @@
     - 线程私有
     - 没有任何OutOfMemoryError
     
-- 虚拟机栈
+- 虚拟机栈(生命周期与线程相同)
     - Java方法执行的内存模型(区别native方法)
     - 线程私有
     - 方法的调用到完成，对应一个栈帧在虚拟机栈中入栈到出栈
@@ -32,7 +32,7 @@
     - Java堆可扩张实现的调整 -Xmx -Xms 
     - OutOfMemoryError
     
-- 方法区
+- 方法区(HotSpot虚拟机中的永久代 PermGen) **JDK8已移除永久代-The proposed implementation will allocate class meta-data in native memory and move interned Strings and class statics to the Java heap.**
     - 存放被虚拟机加载的类信息、常量、静态变量等
     - 线程共享
     - JVMS把方法区描述为堆的一个逻辑部分，但取名为Non-Heap，为了和Java堆区分开
