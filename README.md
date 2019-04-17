@@ -15,6 +15,6 @@
 
 
 
-# [随笔Demo](https://github.com/BoulCheng/JVMS/blob/master/demo/)
+# 随笔Demo
 ## [OOM](https://github.com/BoulCheng/JVMS/blob/master/demo/oom/)
 ## [虚拟机类加载机制](https://github.com/BoulCheng/JVMS/blob/master/demo/loading/)
