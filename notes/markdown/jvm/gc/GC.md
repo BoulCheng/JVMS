@@ -6,6 +6,8 @@
 
 - Java堆和方法区,内存的分配和回收都是动态的，垃圾收集器所关注的是这部分内存，本章后续讨论中的“内存”分配与回收也仅指这一部分内存。
 
+- 大多数情况下，对象在新生代Eden区中分配。当Eden区没有足够空间进行分配时，虚拟机将发起一次Minor GC
+- 当 Survivor可能不足以容纳Eden和另一个Survivor中的存活对象。如果Survivor中的存活对象溢出，多余的对象将被移到老年代，如果此时老年代满了而无法容纳更多的对象，则会触发Full GC
 
 - 引用计数算法
     - 给对象中添加一个引用计数器，每当有一个地方引用它时，计数器值就加1；当引用失效时，计数器值就减1；任何时刻计数器为0的对象就是不可能再被使用的
@@ -85,6 +87,11 @@
             - 更关键的是，如果不想浪费50%的空间，就需要有额外的空间进行分配担保，以应对被使用的内存中所有对象都100%存活的极端情况
             - 老年代一般不能直接选用这种算法。
             
+        - 默认的，新生代 ( Young ) 与老年代 ( Old ) 的比例的值为 1:2 ( 该值可以通过参数 –XX:NewRatio 来指定 )，即：新生代 ( Young ) = 1/3 的堆空间大小。老年代 ( Old ) = 2/3 的堆空间大小。其中，新生代 ( Young ) 被细分为 Eden 和 两个 Survivor 区域，这两个 Survivor 区域分别被命名为 from 和 to，以示区分。
+          默认的，Edem : from : to = 8 : 1 : 1 ( 可以通过参数 –XX:SurvivorRatio 来设定 )，即： Eden = 8/10 的新生代空间大小，from = to = 1/10 的新生代空间大小。
+          JVM 每次只会使用 Eden 和其中的一块 Survivor 区域来为对象服务，所以无论什么时候，总是有一块 Survivor 区域是空闲着的。
+          因此，新生代实际可用的内存空间为 9/10 ( 即90% )的新生代空间
+          
     - 标记-整理算法(老年代收集算法)
         - 标记过程仍然与“标记-清除”算法一样，但后续步骤不是直接对可回收对象进行清理，而是让所有存活的对象都向一端移动，然后直接清理掉端边界以外的内存
         
@@ -173,6 +180,7 @@
                - 例如，-XX:GCTimeRatio=19设定GC总时间为5％目标，吞吐量目标为95％。也就是说，应用程序的时间应该是收集器的19倍。
                - 默认情况下，该值为99，这意味着应用程序应至少获得收集器时间的99倍。也就是说，收集器的运行时间不应超过总时间的1％。这被选为服务器应用程序的不错选择。如果值太高将导致堆的大小增大到最大值。
                
+            - For example, -XX:GCTimeRatio=19 sets a goal of 1/20 or 5% of the total time in garbage collection. The default value is 99, resulting in a goal of 1% of the time in garbage collection.
             - -XX:GCTimeRatio=nnn
                 - A hint to the virtual machine that it's desirable that not more than 1 / (1 + nnn) of the application execution time be spent in the collector.
                 - For example -XX:GCTimeRatio=19 sets a goal of 5% of the total time for GC and throughput goal of 95%. That is, the application should get 19 times as much time as the collector.
@@ -205,12 +213,12 @@
                 
             - 并发标记（CMS concurrent mark）
                 - 并发标记阶段就是进行GC RootsTracing的过程
+                - 与用户线程一起工作
                 
             - 重新标记（CMS remark）
                 - 需要"Stop The World"
                 - 为了修正并发标记期间因用户程序继续运作而导致标记产生变动的那一部分对象的标记记录
                 - 这个阶段的停顿时间一般会比初始标记阶段稍长一些，但远比并发标记的时间短
-                - 与用户线程一起工作
                 
             - 并发清除（CMS concurrent sweep）
                 - 耗时长
