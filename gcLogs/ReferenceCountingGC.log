@@ -1,0 +1,29 @@
+Java HotSpot(TM) 64-Bit Server VM (25.171-b11) for bsd-amd64 JRE (1.8.0_171-b11), built on Mar 28 2018 12:50:57 by "java_re" with gcc 4.2.1 (Based on Apple Inc. build 5658) (LLVM build 2336.11.00)
+Memory: 4k page, physical 8388608k(236208k free)
+
+/proc/meminfo:
+
+CommandLine flags: -XX:InitialHeapSize=134217728 -XX:MaxHeapSize=2147483648 -XX:+PrintGC -XX:+PrintGCDateStamps -XX:+PrintGCDetails -XX:+PrintGCTimeStamps -XX:+UseCompressedClassPointers -XX:+UseCompressedOops -XX:+UseParallelGC 
+2019-07-05T10:51:23.375-0800: 0.317: [GC (System.gc()) [PSYoungGen: 6759K->560K(38400K)] 6759K->568K(125952K), 0.0010466 secs] [Times: user=0.00 sys=0.00, real=0.00 secs] 
+2019-07-05T10:51:23.376-0800: 0.318: [Full GC (System.gc()) [PSYoungGen: 560K->0K(38400K)] [ParOldGen: 8K->465K(87552K)] 568K->465K(125952K), [Metaspace: 3300K->3300K(1056768K)], 0.0043471 secs] [Times: user=0.01 sys=0.01, real=0.01 secs] 
+2019-07-05T10:51:23.382-0800: 0.324: [GC (System.gc()) [PSYoungGen: 4761K->0K(38400K)] 5227K->465K(125952K), 0.0026424 secs] [Times: user=0.00 sys=0.00, real=0.00 secs] 
+2019-07-05T10:51:23.384-0800: 0.326: [Full GC (System.gc()) [PSYoungGen: 0K->0K(38400K)] [ParOldGen: 465K->449K(87552K)] 465K->449K(125952K), [Metaspace: 3301K->3301K(1056768K)], 0.0074787 secs] [Times: user=0.01 sys=0.00, real=0.01 secs] 
+2019-07-05T10:51:23.392-0800: 0.334: [GC (System.gc()) [PSYoungGen: 5427K->0K(38400K)] 5876K->449K(125952K), 0.0009389 secs] [Times: user=0.00 sys=0.00, real=0.00 secs] 
+2019-07-05T10:51:23.393-0800: 0.335: [Full GC (System.gc()) [PSYoungGen: 0K->0K(38400K)] [ParOldGen: 449K->445K(87552K)] 449K->445K(125952K), [Metaspace: 3301K->3301K(1056768K)], 0.0046086 secs] [Times: user=0.01 sys=0.00, real=0.00 secs] 
+2019-07-05T10:51:23.398-0800: 0.341: [GC (System.gc()) [PSYoungGen: 4761K->0K(38400K)] 5207K->445K(125952K), 0.0007988 secs] [Times: user=0.00 sys=0.00, real=0.00 secs] 
+2019-07-05T10:51:23.399-0800: 0.341: [Full GC (System.gc()) [PSYoungGen: 0K->0K(38400K)] [ParOldGen: 445K->445K(87552K)] 445K->445K(125952K), [Metaspace: 3301K->3301K(1056768K)], 0.0044960 secs] [Times: user=0.01 sys=0.00, real=0.01 secs] 
+2019-07-05T10:51:23.404-0800: 0.346: [GC (System.gc()) [PSYoungGen: 4761K->0K(38400K)] 5207K->445K(125952K), 0.0007943 secs] [Times: user=0.00 sys=0.00, real=0.00 secs] 
+2019-07-05T10:51:23.405-0800: 0.347: [Full GC (System.gc()) [PSYoungGen: 0K->0K(38400K)] [ParOldGen: 445K->445K(87552K)] 445K->445K(125952K), [Metaspace: 3301K->3301K(1056768K)], 0.0041175 secs] [Times: user=0.01 sys=0.00, real=0.00 secs] 
+2019-07-05T10:51:23.410-0800: 0.352: [GC (System.gc()) [PSYoungGen: 4761K->0K(38400K)] 5207K->445K(125952K), 0.0003791 secs] [Times: user=0.00 sys=0.00, real=0.00 secs] 
+2019-07-05T10:51:23.410-0800: 0.352: [Full GC (System.gc()) [PSYoungGen: 0K->0K(38400K)] [ParOldGen: 445K->445K(87552K)] 445K->445K(125952K), [Metaspace: 3301K->3301K(1056768K)], 0.0041013 secs] [Times: user=0.01 sys=0.00, real=0.00 secs] 
+2019-07-05T10:51:23.415-0800: 0.357: [GC (System.gc()) [PSYoungGen: 4761K->0K(38400K)] 5207K->445K(125952K), 0.0002822 secs] [Times: user=0.00 sys=0.00, real=0.00 secs] 
+2019-07-05T10:51:23.415-0800: 0.357: [Full GC (System.gc()) [PSYoungGen: 0K->0K(38400K)] [ParOldGen: 445K->445K(87552K)] 445K->445K(125952K), [Metaspace: 3301K->3301K(1056768K)], 0.0031535 secs] [Times: user=0.01 sys=0.00, real=0.00 secs] 
+Heap
+ PSYoungGen      total 38400K, used 665K [0x0000000795580000, 0x0000000798000000, 0x00000007c0000000)
+  eden space 33280K, 2% used [0x0000000795580000,0x00000007956267d8,0x0000000797600000)
+  from space 5120K, 0% used [0x0000000797600000,0x0000000797600000,0x0000000797b00000)
+  to   space 5120K, 0% used [0x0000000797b00000,0x0000000797b00000,0x0000000798000000)
+ ParOldGen       total 87552K, used 445K [0x0000000740000000, 0x0000000745580000, 0x0000000795580000)
+  object space 87552K, 0% used [0x0000000740000000,0x000000074006f798,0x0000000745580000)
+ Metaspace       used 3307K, capacity 4496K, committed 4864K, reserved 1056768K
+  class space    used 365K, capacity 388K, committed 512K, reserved 1048576K

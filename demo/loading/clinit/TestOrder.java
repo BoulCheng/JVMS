@@ -37,7 +37,9 @@ public class TestOrder {
     static class Child extends Father {
 
         Child() {
+            x = 0L;
             System.out.println(System.currentTimeMillis() + " ------ 子类构造函数");
+            System.out.println(x);
         }
 
         static long y = getTime(" ------ 子类静态变量");

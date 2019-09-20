@@ -2,6 +2,7 @@ package loading;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.security.ProtectionDomain;
 
 /**
  * @author Yuanming Tao
@@ -15,6 +16,7 @@ public class ClassLoaderTest {
      * 虚拟机中存在了两个ClassLoaderTest类，一个是由系统应用程序类加载器加载的，另外一个是由我们自定义的类加载器加载的，虽然都来自同一个Class文件，但依然是两个独立的类，做对象所属类型检查时结果自然为false。
      * @param args
      * @throws Exception
+     * {@link ClassLoader#preDefineClass(String, ProtectionDomain)}
      */
     public static void main(String[] args) throws Exception {
 
@@ -41,6 +43,16 @@ public class ClassLoaderTest {
         System.out.println(obj.getClass());
         //两个ClassLoaderTest类由不同的类加载器加载 虽然是同一个Class文件，但是不同的两个类
         System.out.println(obj instanceof loading.ClassLoaderTest);
+
+        ClassLoaderTest classLoaderTest = new ClassLoaderTest();
+        System.out.println(classLoaderTest instanceof loading.ClassLoaderTest);
+
+
+        Object short2 = myLoader.loadClass("loading.Short").newInstance();
+        System.out.println(short2 instanceof loading.Short);
+        Short short3 = new Short();
+        System.out.println(short3 instanceof loading.Short);
+
     }
 }
 

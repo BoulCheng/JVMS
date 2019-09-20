@@ -28,7 +28,15 @@ public class RuntimeConstantPoolTest {
         str.intern();
 
         String str2 = new StringBuilder("zlb").append("zlb").toString();
+        //JDK 1.8 str.intern()如果str代表字符串不是首次出现 该方法直接返回常量池中保存的该字符串首次出现的实例引用
         System.out.println(str2.intern() == str2);
+
+
+
+        String str4 = new StringBuilder("zlb").append("zlb").toString();
+
+        String str5 = new StringBuilder("zlb").append("zlb").toString();
+        System.out.println(str4.intern() == str5);
     }
 
 }

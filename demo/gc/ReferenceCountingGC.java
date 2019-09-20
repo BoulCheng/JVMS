@@ -3,7 +3,7 @@ package gc;
 /**
  * @author Yuanming Tao
  * Created on 2019/3/28
- * -XX:+PrintGCDetails -Xloggc:/Users/zlb/IdeaProjects/lb/JVM-S/gcLogs/ReferenceCountingGC.log
+ * -XX:+PrintGCDetails -Xloggc:/Users/zlb/IdeaProjects/lb/JVM-S/gcLogs/ReferenceCountingGC.log -XX:+PrintGCDateStamps
  */
 /**
  * testGC()方法执行后，objA和objB会不会被GC呢？
