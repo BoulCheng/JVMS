@@ -228,6 +228,7 @@
     - Java设计团队只好引入了一个不太优雅的设计：线程上下文类加载器（Thread Context ClassLoader）。这个类加载器可以通过java.lang.Thread类的setContextClassLoaser()方法进行设置，如果创建线程时还未设置，它将会从父线程中继承一个，如果在应用程序的全局范围内都没有设置过的话，那这个类加载器默认就是应用程序类加载器。
     - 可以使用这个线程上下文类加载器去加载类
     - 在JDBC中就破坏了双亲委派模型，DriverManager中通过ServiceLoader(java spi)获取Driver接口的具体实现类,而Driver接口实现类的类加载就是通过 Thread.currentThread().getContextClassLoader()得到线程上下文类加载器来加载的(DriverManager.LazyIterator)
+    - DriverManager 是被引导类加载器加载的 但是Driver接口的具体实现类肯定不在rt.jar里 所以必须打破双亲委派模型
     
 - OSGi实现模块化热部署的关键则是它自定义的类加载器机制的实现。
     - 每一个程序模块（OSGi中称为Bundle）都有一个自己的类加载器，当需要更换一个Bundle时，就把Bundle连同类加载器一起换掉以实现代码的热替换。
