@@ -216,11 +216,24 @@
     
 - 自定义的类包名不能以 java 开头， {@link ClassLoader#preDefineClass(String, ProtectionDomain)} 不允许加载类的全限定名以 java 开头的类 
 
-    
+## 双亲委派模型的应用
+- 不在ClassPath路径，加载特定路径下或网络上的class文件
+- 隔离
+    - tomcat中对每个Web应用都有自己专用的一个WebAppClassLoader类加载器用来隔绝不同应用之间的class文件
+- 字节码加解密
+    - 一些核心类库，可能会把字节码加密，这样加载类的时候就必须对字节码进行解密，可以通过findClass读取URL中的字节码，然后加密，最后把字节数组交给defineClass()加载
+- 同时加载不同版本的同名包
+- OSGi实现模块化热部署的关键则是它自定义的类加载器机制的实现。
+    - 每一个程序模块（OSGi中称为Bundle）都有一个自己的类加载器，当需要更换一个Bundle时，就把Bundle连同类加载器一起换掉以实现代码的热替换。
+    - 在OSGi环境下，类加载器不再是双亲委派模型中的树状结构，而是进一步发展为更加复杂的网状结构
+       
+- 线程上下文类加载器（Thread Context ClassLoader）
+    - 保证多个需要通信的线程间的类加载器应该是同一个, 防止因为不同的类加载器, 导致类型转换异常(ClassCastException). 
 ## 破坏双亲委派模型
 
 - JDK 1.2 之前 用户去继承java.lang.ClassLoader的唯一目的就是为了重写loadClass()方法.自己实现loadClass()方法可能会破坏
     - JDK 1.2之后已不提倡用户再去覆盖loadClass()方法，而应当把自己的类加载逻辑写到findClass()方法中，在loadClass()方法的逻辑里如果父类加载失败，则会调用自己的findClass()方法来完成加载，这样就可以保证新写出来的类加载器是符合双亲委派规则的。
+    - 如果需要破坏双亲委派机制则直接覆盖loadClass方法
     
 - 父类加载器请求子类加载器去完成类加载的动作，这种行为实际上就是打通了双亲委派模型的层次结构来逆向使用类加载器，实际上已经违背了双亲委派模型的一般性原则.
     - 双亲委派很好地解决了各个类加载器的基础类的统一问题（越基础的类由越上层的加载器进行加载)
@@ -229,10 +242,7 @@
     - 可以使用这个线程上下文类加载器去加载类
     - 在JDBC中就破坏了双亲委派模型，DriverManager中通过ServiceLoader(java spi)获取Driver接口的具体实现类,而Driver接口实现类的类加载就是通过 Thread.currentThread().getContextClassLoader()得到线程上下文类加载器来加载的(DriverManager.LazyIterator)
     - DriverManager 是被引导类加载器加载的 但是Driver接口的具体实现类肯定不在rt.jar里 所以必须打破双亲委派模型
-    
-- OSGi实现模块化热部署的关键则是它自定义的类加载器机制的实现。
-    - 每一个程序模块（OSGi中称为Bundle）都有一个自己的类加载器，当需要更换一个Bundle时，就把Bundle连同类加载器一起换掉以实现代码的热替换。
-    - 在OSGi环境下，类加载器不再是双亲委派模型中的树状结构，而是进一步发展为更加复杂的网状结构
+
     
     
             
