@@ -224,8 +224,10 @@
     
 - 父类加载器请求子类加载器去完成类加载的动作，这种行为实际上就是打通了双亲委派模型的层次结构来逆向使用类加载器，实际上已经违背了双亲委派模型的一般性原则.
     - 双亲委派很好地解决了各个类加载器的基础类的统一问题（越基础的类由越上层的加载器进行加载)
+    - 在双亲委派模型下rt.jar基础类只会被加载一次且只会被引导类加载器加载 比如保证一个java.lang.String只有一个Class. 否则可能导致每个类加载器都会产生一个String Class, 也可以写一个String满足自己的意图，保证了基础类的唯一性不可替代以及安全性。
     - Java设计团队只好引入了一个不太优雅的设计：线程上下文类加载器（Thread Context ClassLoader）。这个类加载器可以通过java.lang.Thread类的setContextClassLoaser()方法进行设置，如果创建线程时还未设置，它将会从父线程中继承一个，如果在应用程序的全局范围内都没有设置过的话，那这个类加载器默认就是应用程序类加载器。
     - 可以使用这个线程上下文类加载器去加载类
+    - 在JDBC中就破坏了双亲委派模型，DriverManager中通过ServiceLoader(java spi)获取Driver接口的具体实现类,而Driver接口实现类的类加载就是通过 Thread.currentThread().getContextClassLoader()得到线程上下文类加载器来加载的(DriverManager.LazyIterator)
     
 - OSGi实现模块化热部署的关键则是它自定义的类加载器机制的实现。
     - 每一个程序模块（OSGi中称为Bundle）都有一个自己的类加载器，当需要更换一个Bundle时，就把Bundle连同类加载器一起换掉以实现代码的热替换。
