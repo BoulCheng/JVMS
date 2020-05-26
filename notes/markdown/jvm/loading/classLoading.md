@@ -52,7 +52,7 @@
     - 一个接口在初始化时，并不要求其父接口全部都完成了初始化，只有在真正使用到父接口的时候（如引用接口中定义的常量）才会初始化
   
 ## 类加载的全过程  加载、验证、准备、解析和初始化这5个阶段
-- 加载
+- 加载 获取定义类的字节流并放入虚拟机生成Class对象
     - 在加载阶段，虚拟机需要完成以下3件事情：
         - 通过一个类的全限定名来获取定义此类的二进制字节流. (没有指明二进制字节流要从一个Class文件中获取，准确地说是根本没有指明要从哪里获取、怎样获取. 如：运行时计算生成，这种场景使用得最多的就是动态代理技术，在java.lang.reflect.Proxy中，就是用了ProxyGenerator.generateProxyClass来为特定接口生成形式为"*$Proxy"的代理类的二进制字节流)
         - 将这个字节流所代表的静态存储结构转化为方法区的运行时数据结构。
@@ -89,7 +89,17 @@
     - 虚拟机将常量池内的符号引用替换为直接引用的过程
     - 符号引用（Symbolic References）:符号引用以一组符号来描述所引用的目标，符号可以是任何形式的字面量，只要使用时能无歧义地定位到目标即可。符号引用与虚拟机实现的内存布局无关，引用的目标并不一定已经加载到内存中. 各种虚拟机实现的内存布局可以各不相同，但是它们能接受的符号引用必须都是一致的，因为符号引用的字面量形式明确定义在Java虚拟机规范的Class文件格式中。
     - 直接引用（Direct References）: 直接引用可以是直接指向目标的指针、相对偏移量或是一个能间接定位到目标的句柄。直接引用是和虚拟机实现的内存布局相关的，同一个符号引用在不同虚拟机实例上翻译出来的直接引用一般不会相同。如果有了直接引用，那引用的目标必定已经在内存中存在
+    ```
+    关于方法调用
     
+    1、Class文件的编译过程中不包含传统编译中的连接步骤，所有方法调用中的目标方法在Class文件里面都是一个常量池中的符号引用，而不是方法在实际运行时内存布局中的入口地址。
+    
+    2、在类加载的解析阶段，会将其中的一部分符号引用转化为直接引用，这类方法（编译期可知，运行期不可变）的调用称为解析（Resolution）。
+    
+    主要包括静态方法和私有方法两大类，前者与类型直接关联，后者在外部不可被访问，这两种方法各自的特点决定了它们都不可能通过继承或别的方式重写其他版本，因此它们都适合在类加载阶段进行解析。
+    
+    3、只要能被invokestatic和invokespecial指令调用的方法，都可以在解析阶段中确定唯一的调用版本，符合这个条件的有静态方法、私有方法、实例构造器、父类方法4类，它们在类加载的时候就会把符号引用解析为该方法的直接引用。
+    ```
 - 初始化
     - 初始化阶段，才真正开始执行类中定义的Java程序代码（或者说是字节码）. 类初始化阶段是类加载过程的最后一步，前面的类加载过程中，除了在加载阶段用户应用程序可以通过自定义类加载器参与之外，其余动作完全由虚拟机主导和控制
     - 在准备阶段变量已经赋过一次系统要求的初始值，而在初始化阶段，则根据程序员通过程序制定的主观计划去初始化类变量和其他资源，或者可以从另外一个角度来表达：初始化阶段是执行类构造器＜clinit＞()方法的过程
@@ -126,8 +136,223 @@
             5. 子类实例变量与子类代码块（取决于源代码书写顺序）
             
             6. 子类实例构造函数
+   
+
+- 为什么构造代码块先于构造函数执行
+```
+那么，为什么构造代码块先于构造函数执行呢？
+
+因为编译器会把构造代码块插入到不含this();的构造函数中的super();后面。
+
+super()是调用父类构造函数，先有父亲，再有儿子，所以在super();之后。
+
+this()是调用自身构造函数，为了保证构造代码块在类初始化时只执行一次，所以只会插入到不含this();的构造函数中。
+
+构造代码块的作用：构造函数的公共模块。
+
+```
+- 关于调用父类构造器 见super关键字    
+- If a subclass constructor invokes a constructor of its superclass, either explicitly or implicitly, you might think that there will be a whole chain of constructors called, all the way back to the constructor of Object. In fact, this is the case. It is called constructor chaining, and you need to be aware of it when there is a long line of class descent.
+```
+
+    - If a constructor does not explicitly invoke a superclass constructor, the Java compiler automatically inserts a call to the no-argument constructor of the superclass.   
+    - If the super class does not have a no-argument constructor, you will get a compile-time error. Object does have such a constructor, so if Object is the only superclass, there is no problem.
+    - If a subclass constructor invokes a constructor of its superclass, either explicitly or implicitly, you might think that there will be a whole chain of constructors called, all the way back to the constructor of Object. In fact, this is the case. It is called constructor chaining, and you need to be aware of it when there is a long line of class descent.
+   
     
-    
+```
+- 创建子类对象时，父类对象会也被一起创建-没有创建父类对象，但是调用了父类的构造函数。构造函数就是一个成员方法而已，并没有太多特别之处。
+                      
+```
+调用父类构造方法是真的，但是根本没有创建父类对象，只不过是调用父类构造方法来初始化属性。如果说调用父类构造方法就等于创建父类对象，那就真的无稽之谈。
+new指令开辟空间，用于存放对象的各个属/性引用等，反编译字节码你会发现只有一个new指令，所以开辟的是一块空间，一块空间就放一个对象。
+然后，子类调用父类的属性，方法啥的，那并不是一个实例化的对象。在字节码中子类会有个u2类型的父类索引，属于CONSTANT_Class_info类型，通过CONSTANT_Class_info的描述可以找到CONSTANT_Utf8_info,然后可以找到指定的父类啊啥的。
+你的方法啊，属性名称都是在这个上面解析出来的，然后实际变量内容存储在new出来的空间那里。。。super这个关键字只不过是访问了这个空间特定部分的数据（也就是专门存储父类数据的内存部分）。。。。。。默认的hashcode和equals（直接使用的==比较）都是一样的，
+所以，这根本就在一个空间里，也不存在单独的出来的父类对象。
+
+如果说子类可以强行转换成父类进行使用，那是因为java虚拟机有个静态类型（外观类型）和实际类型的概念。如Object t=new Point(2,3);那么Object属于静态类型（外观类型），Point属于实际类型。
+静态类型和实际类型在程序中都可以发生变法，区别是静态类型的变化仅仅发生在使用时发生，而变量本身的静态类型不会改变，并且最终的静态类型是在编译期间可知的；而实际变量类型的变化结果只有在运行期间才能被确定，编译器在编译的时候并不知道变量的实际类型是什么。
+先在这个空间里创造出父类的那些内容，然后再裹上子类的内容
+
+
+public class A extends B {
+
+    public A() {
+        System.out.println(this.hashCode());
+        System.out.println(super.equals(this));
+    }
+
+    public static void main(String[] args) {
+        new A();
+    }
+
+}
+
+public class B {
+
+    public B() {
+        System.out.println(this.hashCode());
+    }
+}
+
+401625763
+401625763
+true
+
+Process finished with exit code 0
+
+
+```
+- 类与对象的本质区别：类是一堆执行指令的集合，而对象是这些指令执行的结果。类存储在JVM的方法区(元空间（Metaspace) MetaspaceSize MaxMetaspaceSize)中，而对象存储在堆中。类似于汇编中的代码段和数据段
+
+- Java对象的内存布局
+```
+Java对象的内存布局是由对象所属的类确定。
+也可以这么说，当一个类被加载到虚拟机中时，由这个类创建的对象的布局就已经确定下来的啦。
+Hotspot中java对象的内存布局：
+每个java对象在内存中都由对象头和对象体组成。
+对象头是存放对象的元信息，包括该对象所属类对象Class的引用以及hashcode和monitor的一些信息。
+对象体主要存放的是java对象自身的实例域以及从父类继承过来的实例域，并且内部布局满足由下规则：
+```
+- 创建对象的两个字节码指令:  new 和 调用构造函数invoke_special <init>
+```
+当我们new一个对象时，其实jvm已经把这个对象的整个空间已经分配好，并且整个对象的实例域布局已经确定下来啦。
+实例化方法<init>就是将对象实例域的值设置到相应空间中
+<init>方法以调用父类的<init>方法开始，以自身构造方法作为结束。实例域的声明与实例初始化语句块的位置关系会影响编译器生成的<init>方法的字节码顺序
+
+没有创建父类对象，但是调用了父类的构造函数。构造函数就是一个成员方法而已，并没有太多特别之处。
+
+appledeiMac:Downloads apple$
+appledeiMac:Downloads apple$
+appledeiMac:Downloads apple$ cat TestSuperClassNotBeCreatedWhenSubClassBeCreated.java
+public class TestSuperClassNotBeCreatedWhenSubClassBeCreated {
+
+
+  public static void main(String[] args) {
+  	TestSuperClassNotBeCreatedWhenSubClassBeCreated t = new TestSuperClassNotBeCreatedWhenSubClassBeCreated();
+  }
+
+}appledeiMac:Downloads apple$
+appledeiMac:Downloads apple$
+appledeiMac:Downloads apple$
+appledeiMac:Downloads apple$ javap -c TestSuperClassNotBeCreatedWhenSubClassBeCreated.class
+Compiled from "TestSuperClassNotBeCreatedWhenSubClassBeCreated.java"
+public class TestSuperClassNotBeCreatedWhenSubClassBeCreated {
+  public TestSuperClassNotBeCreatedWhenSubClassBeCreated();
+    Code:
+       0: aload_0
+       1: invokespecial #1                  // Method java/lang/Object."<init>":()V
+       4: return
+
+  public static void main(java.lang.String[]);
+    Code:
+       0: new           #2                  // class TestSuperClassNotBeCreatedWhenSubClassBeCreated
+       3: dup
+       4: invokespecial #3                  // Method "<init>":()V
+       7: astore_1
+       8: return
+}
+appledeiMac:Downloads apple$
+```
+
+- 关于super this,  这两个变量对应的字节码指令都是 aload_0 它们并非指向不同对象 
+```
+appledeiMac:calculation apple$
+appledeiMac:calculation apple$ cat C.java
+package so.dian.legolas.api.calculation;
+
+public class C {
+
+    public C() {
+    }
+}
+appledeiMac:calculation apple$ javap -c C.class
+Compiled from "C.java"
+public class so.dian.legolas.api.calculation.C {
+  public so.dian.legolas.api.calculation.C();
+    Code:
+       0: aload_0
+       1: invokespecial #1                  // Method java/lang/Object."<init>":()V
+       4: return
+}
+appledeiMac:calculation apple$
+
+appledeiMac:calculation apple$
+appledeiMac:calculation apple$ cat A.java
+package so.dian.legolas.api.calculation;
+
+public class A extends B {
+
+    public A() {
+        System.out.println(this.hashCode());
+        System.out.println(super.equals(this));
+    }
+
+    public static void main(String[] args) {
+        new A();
+    }
+
+}
+
+appledeiMac:calculation apple$
+appledeiMac:calculation apple$
+appledeiMac:calculation apple$ cat B.java
+package so.dian.legolas.api.calculation;
+
+public class B {
+
+    protected int i;
+    public B() {
+        System.out.println(this.hashCode());
+    }
+}
+appledeiMac:calculation apple$
+appledeiMac:calculation apple$
+appledeiMac:calculation apple$ javap -c A.class
+Compiled from "A.java"
+public class so.dian.legolas.api.calculation.A extends so.dian.legolas.api.calculation.B {
+  public so.dian.legolas.api.calculation.A();
+    Code:
+       0: aload_0
+       1: invokespecial #1                  // Method so/dian/legolas/api/calculation/B."<init>":()V
+       4: getstatic     #2                  // Field java/lang/System.out:Ljava/io/PrintStream;
+       7: aload_0
+       8: invokevirtual #3                  // Method java/lang/Object.hashCode:()I
+      11: invokevirtual #4                  // Method java/io/PrintStream.println:(I)V
+      14: getstatic     #2                  // Field java/lang/System.out:Ljava/io/PrintStream;
+      17: aload_0
+      18: aload_0
+      19: invokespecial #5                  // Method java/lang/Object.equals:(Ljava/lang/Object;)Z
+      22: invokevirtual #6                  // Method java/io/PrintStream.println:(Z)V
+      25: return
+
+  public static void main(java.lang.String[]);
+    Code:
+       0: new           #7                  // class so/dian/legolas/api/calculation/A
+       3: dup
+       4: invokespecial #8                  // Method "<init>":()V
+       7: pop
+       8: return
+}
+appledeiMac:calculation apple$
+appledeiMac:calculation apple$ javap -c B.class
+Compiled from "B.java"
+public class so.dian.legolas.api.calculation.B {
+  protected int i;
+
+  public so.dian.legolas.api.calculation.B();
+    Code:
+       0: aload_0
+       1: invokespecial #1                  // Method java/lang/Object."<init>":()V
+       4: getstatic     #2                  // Field java/lang/System.out:Ljava/io/PrintStream;
+       7: aload_0
+       8: invokevirtual #3                  // Method java/lang/Object.hashCode:()I
+      11: invokevirtual #4                  // Method java/io/PrintStream.println:(I)V
+      14: return
+}
+appledeiMac:calculation apple$
+
+```
 ## 类加载器
 
 - 类加载器:通过一个类的全限定名来获取描述此类的二进制字节流的动作的代码模块 (类加载过程的加载阶段)
