@@ -53,3 +53,79 @@
     - If MaxMetaSpaceSize, has been set on the command-line, increase its value. MetaSpace is allocated from the same address spaces as the Java heap. Reducing the size of the Java heap will make more space available for MetaSpace. This is only a correct trade-off if there is an excess of free space in the Java heap. See the following action for Out of swap space detailed message.
     - -XX:MetaspaceSize=2m -XX:MaxMetaspaceSize=20m  (meta-data设置)
     
+    
+## 内存泄漏
+
+### 堆内存泄漏
+
+### 堆外内存泄漏
+
+- 堆外直接内存
+- 线程数太多 栈消耗内存过多导致
+	-  -Xss1M  设置每个线程的栈大小。the thread stack size
+	- 通过内存来判断机器应用可以设置的最大线程数 
+
+
+
+#### jvm参数
+<h5 id="总结">总结</h5>
+<table>
+<thead>
+<tr>
+<th style="text-align: center">参数</th>
+<th style="text-align: center">含义</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: center">-Xms</td>
+<td style="text-align: center">初始堆大小</td>
+</tr>
+<tr>
+<td style="text-align: center">-Xmx</td>
+<td style="text-align: center">最大堆空间</td>
+</tr>
+<tr>
+<td style="text-align: center">-Xmn</td>
+<td style="text-align: center">设置新生代大小</td>
+</tr>
+<tr>
+<td style="text-align: center">-XX:SurvivorRatio</td>
+<td style="text-align: center">设置新生代eden空间和from/to空间的比例关系</td>
+</tr>
+<tr>
+<td style="text-align: center">-XX:PermSize</td>
+<td style="text-align: center">方法区初始大小</td>
+</tr>
+<tr>
+<td style="text-align: center">-XX:MaxPermSize</td>
+<td style="text-align: center">方法区最大大小</td>
+</tr>
+<tr>
+<td style="text-align: center">-XX:MetaspaceSize</td>
+<td style="text-align: center">元空间GC阈值（JDK1.8）</td>
+</tr>
+<tr>
+<td style="text-align: center">-XX:MaxMetaspaceSize</td>
+<td style="text-align: center">最大元空间大小（JDK1.8）</td>
+</tr>
+<tr>
+<td style="text-align: center">-Xss</td>
+<td style="text-align: center">栈大小</td>
+</tr>
+<tr>
+<td style="text-align: center">-XX:MaxDirectMemorySize</td>
+<td style="text-align: center">直接内存大小，默认为最大堆空间</td>
+</tr>
+</tbody>
+</table>
+<h2 id="参考资料">参考资料</h2>
+<ul>
+<li><a href="http://lovestblog.cn/blog/2016/10/29/metaspace/">http://lovestblog.cn/blog/2016/10/29/metaspace/</a></li>
+</ul>
+
+##### 新生代相关JVM参数
+- Xmn NewSize MaxNewSize NewRatio
+
+
+- java -Xms20m -Xmn10M -XX:SurvivorRatio=2 -XX:MetaspaceSize=10m -XX:MaxMetaspaceSize=50m -Xss2m -XX:MaxDirectMemorySize=50m -XX:+PrintGCDetails GCDemo
