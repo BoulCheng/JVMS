@@ -21,6 +21,8 @@
 - 类从被加载到虚拟机内存中开始，到卸载出内存为止，它的整个生命周期包括
     - 加载（Loading）、验证（Verification）、准备（Preparation）、解析（Resolution）、初始化（Initialization）、使用（Using）和卸载（Unloading）7个阶段
     - 其中验证、准备、解析3个部分统称为连接（Linking）
+        - ClassLoader#loadClass(String) 并没有进行类加载的连接阶段
+        - Class.forName(className) 执行了类加载的连接阶段
 - 加载、验证、准备、初始化和卸载这5个阶段的顺序是确定的，类的加载过程必须按照这种顺序按部就班地开始. (注意，这里笔者写的是按部就班地“开始”，而不是按部就班地“进行”或“完成”，强调这点是因为这些阶段通常都是互相交叉地混合式进行的，通常会在一个阶段执行的过程中调用、激活另外一个阶段。)
 
 - 而解析阶段则不一定：它在某些情况下可以在初始化阶段之后再开始，这是为了支持Java语言的运行时绑定（也称为动态绑定或晚期绑定)
@@ -54,7 +56,11 @@
 ## 类加载的全过程  加载、验证、准备、解析和初始化这5个阶段
 - 加载 获取定义类的字节流并放入虚拟机生成Class对象
     - 在加载阶段，虚拟机需要完成以下3件事情：
-        - 通过一个类的全限定名来获取定义此类的二进制字节流. (没有指明二进制字节流要从一个Class文件中获取，准确地说是根本没有指明要从哪里获取、怎样获取. 如：运行时计算生成，这种场景使用得最多的就是动态代理技术，在java.lang.reflect.Proxy中，就是用了ProxyGenerator.generateProxyClass来为特定接口生成形式为"*$Proxy"的代理类的二进制字节流)
+        - 通过一个类的全限定名来获取定义此类的二进制字节流. 
+            - 二进制字节流 可以从.Class文件获取 也可以从网络等其他地方获取，还可以运行时生成
+            - 没有指明二进制字节流要从一个Class文件中获取，准确地说是根本没有指明要从哪里获取、怎样获取. 
+            - 运行时计算生成，jdk动态代理生成类的二进制字节流(如：运行时计算生成，这种场景使用得最多的就是动态代理技术，在java.lang.reflect.Proxy中，就是用了ProxyGenerator.generateProxyClass来为特定接口生成形式为"*$Proxy"的代理类的二进制字节流)
+            - 类加载机制的 5 个阶段中，只有“加载”阶段有一定的可定制性，更具体的，只有“加载”阶段的第一步可定制：根据类的全限定名获取定义该类的二进制字节流
         - 将这个字节流所代表的静态存储结构转化为方法区的运行时数据结构。
         - 在内存中生成一个代表这个类的java.lang.Class对象，作为方法区这个类的各种数据的访问入口。(并没有明确规定是在Java堆中, 对于HotSpot虚拟机而言，Class对象比较特殊，它虽然是对象，但是存放在方法区里面)
     - 数组类与非数组类加载
@@ -354,8 +360,16 @@ appledeiMac:calculation apple$
 
 ```
 ## 类加载器
+- 确定一个类的唯一性
+    - 类加载器 + 类路径才唯一确定一个 Java 类，Class 对象
+    - 在JVM 中判断一个方法的要素是：类名、方法名以及方法描述符；与 Java 源码中的不同在于方法描述符这个概念。方法描述符由方法的参数类型和返回类型所构成
+        - 方法名、形参类型、形参个数都相同(方法名和参数是一致的)，但是返回参数类型不同，无法通过编译生成.class文件
+        - 通过修改字节码的方式，即有两个相同的 a 方法，它们的方法名、形参类型、形参个数都相同，但是返回参数类型不同，JVM 对于方法名、形参类型、形参个数都相同，但是返回参数类型不同的方法，是完全接受的，
+        - 在 JVM 中，类路径和类加载器唯一确定一个 Java 类，方法名、形参类型、形参个数、返回参数类型唯一确定一个 Java 类中的方法
 
-- 类加载器:通过一个类的全限定名来获取描述此类的二进制字节流的动作的代码模块 (类加载过程的加载阶段)
+- 类加载器:通过一个类的全限定名来获取描述此类的二进制字节流的动作的代码模块，并生成Class对象 (类加载过程的加载阶段)
+- 隔离特性
+    - tomcat
 
 - 两个类相等的判断
     - **对于任意一个类，都需要由加载它的类加载器和这个类本身一同确立其在Java虚拟机中的唯一性，每一个类加载器，都拥有一个独立的类名称空间**
@@ -388,8 +402,16 @@ appledeiMac:calculation apple$
     - 并不是一个强制性的约束模型，而是Java设计者推荐给开发者的一种类加载器实现方式。
     - 双亲委派模型的工作过程是:如果一个类加载器收到了类加载的请求，它首先不会自己去尝试加载这个类，而是把这个请求委派给父类加载器去完成，每一个层次的类加载器都是如此，因此所有的加载请求最终都应该传送到顶层的启动类加载器中，只有当父加载器反馈自己无法完成这个加载请求（它的搜索范围中没有找到所需的类）时，子加载器才会尝试自己去加载
     - Java类随着它的类加载器一起具备了一种带有优先级的层次关系(例如类java.lang.Object，它存放在rt.jar之中，无论哪一个类加载器要加载这个类，最终都是委派给处于模型最顶端的启动类加载器进行加载，因此Object类在程序的各种类加载器环境中都是同一个类)
-    
-- 实现双亲委派的代码都集中在java.lang.ClassLoader的loadClass()方法之中
+
+- 双亲委派的实现 
+    - 通过@see ClassLoader#loadClass(String) 实现
+    - 启动类加载器(bootstrap class loader)、扩展类加载器(sun.misc.Launcher#ExtClassLoader)、应用程序类加载器(sun.misc.Launcher#AppClassLoader)、自定义类加载器之间的父子关系以及它们与  ClassLoader.java 的关系
+        - 扩展类加载器(sun.misc.Launcher#ExtClassLoader)、应用程序类加载器(sun.misc.Launcher#AppClassLoader)、自定义类加载器 全都继承自抽象类java.lang.ClassLoader
+        - 启动类加载器(bootstrap class loader)、扩展类加载器(sun.misc.Launcher#ExtClassLoader)、应用程序类加载器(sun.misc.Launcher#AppClassLoader)、自定义类加载器；依次前一个是后一个类加载器的父类加载器
+            - 父类关系通过组合委托机制实现 而非继承
+        - 由于系统自带的三个类加载器都加载特定目录下的类，自定义的类加载器从哪里加载类 通过@see ClassLoader#findClass(String) 实现
+        
+    - 实现双亲委派的代码都集中在java.lang.ClassLoader的loadClass()方法之中
     ```
         /**
          * 辑清晰易懂：先检查是否已经被加载过，若没有加载则调用父加载器的loadClass()方法，若父加载器为空则默认使用启动类加载器作为父加载器。
@@ -439,21 +461,29 @@ appledeiMac:calculation apple$
         
     ```
     
-- 自定义的类包名不能以 java 开头， {@link ClassLoader#preDefineClass(String, ProtectionDomain)} 不允许加载类的全限定名以 java 开头的类 
+- 自定义的类包名不能以 java 开头， {@link ClassLoader#preDefineClass(String, ProtectionDomain)} 不允许加载类的全限定名以 java 开头的类
 
+- 双亲委派模型的作用
+    - java类随着它的类加载器一起具备了一种带有优先级的层次关系(双亲委派很好地解决了各个类加载器的基础类的统一问题)
+        - 对于 Java 核心库的类的加载工作由引导类加载器来统一完成，保证了Java应用所使用的都是同一个版本的Java核心库的类即Java核心库的类的唯一性，是互相兼容的
+        - 例如类java.lang.Object，它存放在rt.jar中，无论哪个类加载器要加载这个类，最终都会委派给启动类加载器进行加载，因此Object类在程序的各种类加载器环境中都是同一个类
+    - 系统类的安全问题
+        - 假如网络传递一个名为java.lang.Integer的类的二进制字节流，通过双亲委托模式传递到启动类加载器，而启动类加载器在核心Java API发现这个名字的类，发现该类已被加载，并不会重新加载网络传递的过来的java.lang.Integer；可以防止核心API库被随意篡改
 ## 双亲委派模型的应用
-- 不在ClassPath路径，加载特定路径下或网络上的class文件
+- 类加载器-不在ClassPath路径，加载特定路径下或网络上的class文件
 - 隔离
     - tomcat中对每个Web应用都有自己专用的一个WebAppClassLoader类加载器用来隔绝不同应用之间的class文件
-- 字节码加解密
-    - 一些核心类库，可能会把字节码加密，这样加载类的时候就必须对字节码进行解密，可以通过findClass读取URL中的字节码，然后加密，最后把字节数组交给defineClass()加载
-- 同时加载不同版本的同名包
-- OSGi实现模块化热部署的关键则是它自定义的类加载器机制的实现。
-    - 每一个程序模块（OSGi中称为Bundle）都有一个自己的类加载器，当需要更换一个Bundle时，就把Bundle连同类加载器一起换掉以实现代码的热替换。
-    - 在OSGi环境下，类加载器不再是双亲委派模型中的树状结构，而是进一步发展为更加复杂的网状结构
+    - 同时加载不同版本的同名包
        
 - 线程上下文类加载器（Thread Context ClassLoader）
     - 保证多个需要通信的线程间的类加载器应该是同一个, 防止因为不同的类加载器, 导致类型转换异常(ClassCastException). 
+    
+- 字节码加解密
+    - 一些核心类库，可能会把字节码加密，这样加载类的时候就必须对字节码进行解密，可以通过findClass读取URL中的字节码，然后加密，最后把字节数组交给defineClass()加载
+- OSGi实现模块化热部署的关键则是它自定义的类加载器机制的实现。
+    - 每一个程序模块（OSGi中称为Bundle）都有一个自己的类加载器，当需要更换一个Bundle时，就把Bundle连同类加载器一起换掉以实现代码的热替换。
+    - 在OSGi环境下，类加载器不再是双亲委派模型中的树状结构，而是进一步发展为更加复杂的网状结构
+
 ## 破坏双亲委派模型
 
 - JDK 1.2 之前 用户去继承java.lang.ClassLoader的唯一目的就是为了重写loadClass()方法.自己实现loadClass()方法可能会破坏
@@ -468,6 +498,13 @@ appledeiMac:calculation apple$
     - 在JDBC中就破坏了双亲委派模型，DriverManager中通过ServiceLoader(java spi)获取Driver接口的具体实现类,而Driver接口实现类的类加载就是通过 Thread.currentThread().getContextClassLoader()得到线程上下文类加载器来加载的(DriverManager.LazyIterator)
     - DriverManager 是被引导类加载器加载的 但是Driver接口的具体实现类肯定不在rt.jar里 所以必须打破双亲委派模型
 
-    
-    
+- jdbc
+    - 因为类加载器受到加载范围的限制，在某些情况下父类加载器无法加载到需要的文件，这时候就需要委托子类加载器去加载class文件
+    - 根据类加载机制，当被装载的类引用了另外一个类的时候，虚拟机就会使用装载第一个类的类装载器装载被引用的类
+    - DriverManager 类中要加载各个实现了Driver接口的类，然后进行管理，但是DriverManager位于 JAVA_HOME中jre/lib/rt.jar 包，由BootStrap类加载器加载，而其Driver接口的实现类是位于服务商提供的 Jar 包，根据类加载机制，当被装载的类引用了另外一个类的时候，虚拟机就会使用装载第一个类的类装载器装载被引用的类。
+    - 也就是说BootStrap类加载器还要去加载jar包中的Driver接口的实现类。我们知道，BootStrap类加载器默认只负责加载 JAVA_HOME中jre/lib/rt.jar 里所有的class，所以需要由子类加载器去加载Driver实现，这就破坏了双亲委派模型
+    - 子类加载器是通过 Thread.currentThread().getContextClassLoader() 得到的线程上下文加载器
+        - 在 sun.misc.Launcher 初始化的时候，会获取AppClassLoader，然后将其设置为上下文类加载器，所以线程上下文类加载器默认情况下就是AppClassLoader
+            
+            
             
