@@ -336,3 +336,4 @@ invokedynamic 指令用于在运行时动态解析出调用点限定符所引用
 方法调用指令与数据类型无关，而方法返回指令是根据返回值的类型区分的，包括ireturn（当返回值是boolean、byte、char、short和int类型时使用）、lreturn、freturn、dreturn和areturn，另外还有一条return指令供声明为void的方法、实例初始化方法以及类和接口的类初始化方法使用。
 ```
 
+__
