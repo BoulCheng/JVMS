@@ -11,6 +11,8 @@ import java.security.ProtectionDomain;
  */
 public class ClassLoaderTest {
 
+//    todo  1. classpath 2. rt.jar同全限定名类  4.不同类加载器加载不同jar包 5 jar包
+
 
     /**
      * 虚拟机中存在了两个ClassLoaderTest类，一个是由系统应用程序类加载器加载的，另外一个是由我们自定义的类加载器加载的，虽然都来自同一个Class文件，但依然是两个独立的类，做对象所属类型检查时结果自然为false。
@@ -27,7 +29,8 @@ public class ClassLoaderTest {
                     String fileName = name.substring(name.lastIndexOf(".") + 1) + ".class";
                     InputStream is = getClass().getResourceAsStream(fileName);
                     if (is == null) {
-                        return super.loadClass(name);
+                        throw new ClassNotFoundException();
+//                        return super.loadClass(name);
                     }
                     byte[] b = new byte[is.available()];
                     is.read(b);
@@ -37,6 +40,20 @@ public class ClassLoaderTest {
                 }
             }
         };
+
+
+        Class stringClass1 = myLoader.loadClass("java.lang.String");
+        System.out.println(stringClass1.newInstance() instanceof String);
+
+
+        ClassLoader myLoader2 = new ClassLoader() {
+            @Override
+            public Class<?> loadClass(String name) throws ClassNotFoundException {
+                return super.loadClass(name);
+            }
+        };
+        Class stringClass = myLoader2.loadClass("java.lang.String");
+        System.out.println(stringClass.newInstance() instanceof String);
 
         Object obj = myLoader.loadClass("loading.ClassLoaderTest").newInstance();
 
